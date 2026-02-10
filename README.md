@@ -1,2 +1,6 @@
-# CalculaterDemo
-This is a repository about an easy calculater demo 
+# 高级计算器
+这是一个C语言写的高级计算器，可以计算 加法 (+) 减法 (-)            乘法 (×) 除法 (÷)            开平方根 (√)
+
+绝对值 (|x|)  自然对数 (ln)  常用对数 (log₁₀) 正弦 (sin) 余弦 (cos)
+
+正切 (tan) 幂运算 (x^y)    取余 (%) 最大值             最小值
