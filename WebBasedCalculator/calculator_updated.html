@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI实时预览 · 智能计算器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(145deg, #1e1e2f 0%, #2a2a40 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .calculator {
+            width: 360px;
+            background: rgba(30, 30, 46, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 36px;
+            box-shadow: 0 30px 60px -20px rgba(0,0,0,0.8),
+                        0 0 0 1px rgba(255,255,255,0.05);
+            padding: 24px;
+        }
+
+        /* 实时预览状态标记 —— 模拟Cursor的“一边修改一边演示” */
+        .preview-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+            color: #b1e3ff;
+            font-size: 13px;
+            font-weight: 500;
+            letter-spacing: 0.3px;
+            background: rgba(79, 172, 254, 0.12);
+            padding: 6px 14px;
+            border-radius: 40px;
+            border: 1px solid rgba(79, 172, 254, 0.3);
+            width: fit-content;
+        }
+
+        .pulse-dot {
+            width: 10px;
+            height: 10px;
+            background: #4facfe;
+            border-radius: 50%;
+            box-shadow: 0 0 8px #4facfe;
+            animation: pulse 1.8s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(1.2); }
+        }
+
+        .display {
+            background: #0d0d16;
+            border-radius: 24px;
+            padding: 24px 20px;
+            margin-bottom: 24px;
+            text-align: right;
+            box-shadow: inset 0 4px 12px rgba(0,0,0,0.6);
+            border: 1px solid rgba(255,255,255,0.04);
+        }
+
+        .expression {
+            color: #9aa3b8;
+            font-size: 15px;
+            min-height: 22px;
+            word-wrap: break-word;
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            letter-spacing: 0.5px;
+        }
+
+        .current-input {
+            color: white;
+            font-size: 44px;
+            font-weight: 600;
+            margin-top: 6px;
+            word-wrap: break-word;
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            line-height: 1.2;
+            text-shadow: 0 0 8px rgba(79, 172, 254, 0.4);
+        }
+
+        .buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+        }
+
+        .btn {
+            border: none;
+            background: #242433;
+            color: white;
+            font-size: 24px;
+            font-weight: 500;
+            padding: 18px 8px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.12s ease;
+            box-shadow: 0 6px 0 #12121c, 
+                        0 8px 16px rgba(0,0,0,0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(255,255,255,0.03);
+        }
+
+        .btn:active {
+            transform: translateY(6px);
+            box-shadow: 0 2px 0 #12121c, 0 8px 16px rgba(0,0,0,0.4);
+        }
+
+        .btn-operator {
+            background: #2e3a4c;
+            color: #b1e3ff;
+            font-size: 28px;
+        }
+
+        .btn-equal {
+            background: linear-gradient(145deg, #3b6ea5, #2a4f7a);
+            color: white;
+            font-size: 32px;
+            font-weight: 600;
+            box-shadow: 0 6px 0 #102131;
+        }
+
+        .btn-clear {
+            background: #3d2a44;
+            color: #ffb3cc;
+            font-size: 22px;
+        }
+
+        .btn-backspace {
+            background: #2a3342;
+            color: #b0d4ff;
+            font-size: 22px;
+        }
+
+        .btn-zero {
+            grid-column: span 2;
+        }
+
+        .btn-adv {
+            background: rgba(52, 211, 153, 0.2);
+            color: #6ee7b7;
+            font-size: 18px;
+            border: 1px solid rgba(52, 211, 153, 0.3);
+        }
+
+        /* 实时修改提示 —— 像Cursor一样，右侧预览实时变化 */
+        .live-hint {
+            margin-top: 16px;
+            color: #8e9cb0;
+            font-size: 12px;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 16px;
+            border-top: 1px solid rgba(255,255,255,0.06);
+            padding-top: 16px;
+        }
+
+        .hint-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .key-icon {
+            background: rgba(255,255,255,0.08);
+            border-radius: 6px;
+            padding: 2px 8px;
+            font-family: monospace;
+            border: 1px solid rgba(255,255,255,0.15);
+        }
+
+        /* 响应式 */
+        @media (max-width: 400px) {
+            .calculator { width: 100%; }
+            .btn { font-size: 20px; padding: 16px 6px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="calculator">
+        <!-- 实时预览标识 —— 模拟Cursor AI 一边修改一边演示效果 -->
+        <div class="preview-badge">
+            <span class="pulse-dot"></span>
+            <span>⚡ AI 实时预览 · 修改即显</span>
+        </div>
+
+        <!-- 显示屏区域 -->
+        <div class="display">
+            <div class="expression" id="expression"></div>
+            <div class="current-input" id="result">0</div>
+        </div>
+
+        <!-- 计算器按键 —— 完整布局 -->
+        <div class="buttons">
+            <button class="btn btn-clear" onclick="clearAll()">C</button>
+            <button class="btn btn-backspace" onclick="backspace()">⌫</button>
+            <button class="btn btn-operator" onclick="appendOperator('%')">%</button>
+            <button class="btn btn-operator" onclick="appendOperator('÷')">÷</button>
+
+            <button class="btn" onclick="appendNumber('7')">7</button>
+            <button class="btn" onclick="appendNumber('8')">8</button>
+            <button class="btn" onclick="appendNumber('9')">9</button>
+            <button class="btn btn-operator" onclick="appendOperator('×')">×</button>
+
+            <button class="btn" onclick="appendNumber('4')">4</button>
+            <button class="btn" onclick="appendNumber('5')">5</button>
+            <button class="btn" onclick="appendNumber('6')">6</button>
+            <button class="btn btn-operator" onclick="appendOperator('-')">−</button>
+
+            <button class="btn" onclick="appendNumber('1')">1</button>
+            <button class="btn" onclick="appendNumber('2')">2</button>
+            <button class="btn" onclick="appendNumber('3')">3</button>
+            <button class="btn btn-operator" onclick="appendOperator('+')">+</button>
+
+            <button class="btn btn-zero" onclick="appendNumber('0')">0</button>
+            <button class="btn" onclick="appendDot()">.</button>
+            <button class="btn btn-adv" onclick="doFactorial()">n!</button>
+            <button class="btn btn-equal" onclick="calculate()">=</button>
+
+            <button class="btn btn-adv" onclick="doPower()">x^y</button>
+            <button class="btn btn-adv" onclick="doSqrt()">√</button>
+            <button class="btn btn-adv" onclick="doSquare()">x²</button>
+            <button class="btn btn-adv" onclick="doReciprocal()">1/x</button>
+        </div>
+
+        <!-- 实时操作提示 —— 增强“一边写一边看效果”的感知 -->
+        <div class="live-hint">
+            <span class="hint-item"><span class="key-icon">⌨️</span> 键盘支持</span>
+            <span class="hint-item"><span class="key-icon">⏎</span> Enter =</span>
+            <span class="hint-item"><span class="key-icon">⌫</span> Backspace</span>
+            <span class="hint-item"><span class="key-icon">ESC</span> 清空</span>
+            <span class="hint-item"><span class="key-icon">n!</span> 阶乘</span>
+            <span class="hint-item"><span class="key-icon">x^y</span> 幂</span>
+        </div>
+    </div>
+
+    <script>
+        // --- 计算器核心状态 —— 修改这里的代码，右侧预览会立刻变化 (就像Cursor实时演示) ---
+        let currentInput = '0';      // 当前显示的数字
+        let expression = '';        // 完整的表达式 (用于显示)
+        let lastResult = null;     // 上次计算结果 (用于连续运算)
+        let shouldResetScreen = false;  // 是否下次输入清屏
+        let powerMode = false;     // 幂运算：已输入底数，等待指数
+        let powerBase = null;      // 幂运算的底数
+
+        // DOM 元素
+        const resultDisplay = document.getElementById('result');
+        const exprDisplay = document.getElementById('expression');
+
+        // 更新显示 —— 修改这个函数，实时预览会变
+        function updateDisplay() {
+            resultDisplay.innerText = currentInput;
+            exprDisplay.innerText = expression || ' ';
+            
+            // 当表达式为空时，保留占位符
+            if (!expression) exprDisplay.innerHTML = '&nbsp;';
+        }
+
+        // 追加数字
+        function appendNumber(num) {
+            if (shouldResetScreen) {
+                currentInput = '';
+                shouldResetScreen = false;
+            }
+            
+            if (num === '0' && currentInput === '0') return;
+            if (currentInput === '0' && num !== '.') {
+                currentInput = num;
+            } else {
+                currentInput += num;
+            }
+            updateDisplay();
+        }
+
+        // 追加小数点
+        function appendDot() {
+            if (shouldResetScreen) {
+                currentInput = '0';
+                shouldResetScreen = false;
+            }
+            if (!currentInput.includes('.')) {
+                currentInput += '.';
+            }
+            updateDisplay();
+        }
+
+        // 追加运算符 —— 同时更新表达式
+        function appendOperator(op) {
+            // 如果当前有结果显示，把结果加入表达式
+            if (currentInput !== '') {
+                // 避免连续多个运算符
+                let lastChar = expression.slice(-1);
+                if (['+', '-', '×', '÷', '%'].includes(lastChar)) {
+                    expression = expression.slice(0, -1);
+                }
+                expression += currentInput + ' ' + op + ' ';
+                currentInput = '';
+            } else {
+                // 如果当前无输入，但表达式存在，替换最后一个运算符
+                if (expression.length > 0) {
+                    let trimmed = expression.slice(0, -2); // 去掉末尾运算符+空格
+                    expression = trimmed + ' ' + op + ' ';
+                }
+            }
+            shouldResetScreen = false;
+            updateDisplay();
+        }
+
+        // 清空所有
+        function clearAll() {
+            currentInput = '0';
+            expression = '';
+            lastResult = null;
+            shouldResetScreen = false;
+            powerMode = false;
+            powerBase = null;
+            updateDisplay();
+        }
+
+        // 退格
+        function backspace() {
+            if (shouldResetScreen) {
+                currentInput = '0';
+                shouldResetScreen = false;
+            } else {
+                currentInput = currentInput.slice(0, -1);
+                if (currentInput === '') currentInput = '0';
+            }
+            updateDisplay();
+        }
+
+        // 阶乘 n!（仅非负整数，最大约 170!）
+        function factorial(n) {
+            n = Math.floor(Number(n));
+            if (n < 0 || n > 170) return NaN;
+            if (n === 0 || n === 1) return 1;
+            let r = 1;
+            for (let i = 2; i <= n; i++) r *= i;
+            return r;
+        }
+
+        function formatResult(num) {
+            if (!Number.isFinite(num)) return '溢出';
+            num = parseFloat(num.toFixed(10));
+            return num === Math.floor(num) ? Math.floor(num).toString() : num.toString();
+        }
+
+        function doFactorial() {
+            const x = parseFloat(currentInput);
+            if (x < 0 || !Number.isInteger(x)) {
+                currentInput = '错误';
+            } else {
+                const f = factorial(x);
+                currentInput = Number.isNaN(f) ? '溢出' : formatResult(f);
+                expression = x + '! = ';
+            }
+            shouldResetScreen = true;
+            updateDisplay();
+        }
+
+        function doPower() {
+            powerBase = currentInput;
+            powerMode = true;
+            expression = powerBase + '^ ';
+            currentInput = '0';
+            shouldResetScreen = true;
+            updateDisplay();
+        }
+
+        function doSqrt() {
+            const x = parseFloat(currentInput);
+            if (x < 0) {
+                currentInput = '错误';
+            } else {
+                currentInput = formatResult(Math.sqrt(x));
+                expression = '√' + x + ' = ';
+            }
+            shouldResetScreen = true;
+            updateDisplay();
+        }
+
+        function doSquare() {
+            const x = parseFloat(currentInput);
+            currentInput = formatResult(x * x);
+            expression = x + '² = ';
+            shouldResetScreen = true;
+            updateDisplay();
+        }
+
+        function doReciprocal() {
+            const x = parseFloat(currentInput);
+            if (x === 0) {
+                currentInput = '错误';
+            } else {
+                currentInput = formatResult(1 / x);
+                expression = '1/' + x + ' = ';
+            }
+            shouldResetScreen = true;
+            updateDisplay();
+        }
+
+        // 核心计算函数 —— 支持 + - × ÷ % 及幂运算
+        function calculate() {
+            if (powerMode && powerBase !== null) {
+                const base = parseFloat(powerBase);
+                const exp = parseFloat(currentInput);
+                currentInput = formatResult(Math.pow(base, exp));
+                expression = powerBase + '^' + exp + ' = ';
+                powerMode = false;
+                powerBase = null;
+                shouldResetScreen = true;
+                updateDisplay();
+                return;
+            }
+            // 把当前输入补充到表达式
+            let finalExpr = expression;
+            if (currentInput !== '' && currentInput !== '0') {
+                finalExpr += currentInput;
+            } else if (currentInput === '0') {
+                finalExpr += '0';
+            } else {
+                // 如果当前没有输入但表达式结尾是运算符，则补0
+                if (finalExpr.endsWith('+ ') || finalExpr.endsWith('- ') || 
+                    finalExpr.endsWith('× ') || finalExpr.endsWith('÷ ') || 
+                    finalExpr.endsWith('% ')) {
+                    finalExpr += '0';
+                }
+            }
+
+            // 替换显示符号为js可计算符号
+            let computeExpr = finalExpr.replace(/×/g, '*').replace(/÷/g, '/').replace(/%/g, '%');
+            
+            try {
+                let result = new Function('return ' + computeExpr)();
+                result = parseFloat(result.toFixed(10));
+                if (result === Math.floor(result)) {
+                    result = Math.floor(result);
+                }
+                currentInput = result.toString();
+                expression = '';
+                lastResult = result;
+                shouldResetScreen = true;
+            } catch (e) {
+                currentInput = '错误';
+                expression = '';
+                shouldResetScreen = true;
+            }
+            updateDisplay();
+        }
+
+        // ---------- 键盘支持 ----------
+        document.addEventListener('keydown', (e) => {
+            if (e.key >= '0' && e.key <= '9') appendNumber(e.key);
+            if (e.key === '.') appendDot();
+            if (e.key === '+' || e.key === '-') appendOperator(e.key);
+            if (e.key === '*') appendOperator('×');
+            if (e.key === '/') appendOperator('÷');
+            if (e.key === '%') appendOperator('%');
+            if (e.key === 'Enter' || e.key === '=') {
+                e.preventDefault();
+                calculate();
+            }
+            if (e.key === 'Backspace') {
+                e.preventDefault();
+                backspace();
+            }
+            if (e.key === 'Escape') clearAll();
+            if (e.key === 'c' || e.key === 'C') clearAll();
+        });
+
+        // 初始化显示
+        updateDisplay();
+    </script>
+</body>
+</html>

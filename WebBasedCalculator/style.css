@@ -1,0 +1,133 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  color: #eee;
+}
+
+.calculator {
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  max-width: 340px;
+}
+
+.calculator h1 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 16px;
+  text-align: center;
+  color: #a0aec0;
+}
+
+.display {
+  background: rgba(0, 0, 0, 0.35);
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin-bottom: 20px;
+  min-height: 80px;
+  text-align: right;
+}
+
+.expression {
+  font-size: 0.95rem;
+  color: #a0aec0;
+  min-height: 22px;
+  word-break: break-all;
+}
+
+.result {
+  font-size: 2.2rem;
+  font-weight: 300;
+  margin-top: 4px;
+  word-break: break-all;
+}
+
+.keypad {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.row {
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+}
+
+.row.advanced {
+  margin-top: 4px;
+}
+
+.btn {
+  flex: 1;
+  min-width: 64px;
+  height: 56px;
+  border: none;
+  border-radius: 12px;
+  font-size: 1.35rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: transform 0.1s, background 0.15s;
+}
+
+.btn:active {
+  transform: scale(0.96);
+}
+
+.btn.num {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+}
+
+.btn.num:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.btn.op {
+  background: rgba(99, 102, 241, 0.5);
+  color: #e0e7ff;
+}
+
+.btn.op:hover {
+  background: rgba(99, 102, 241, 0.7);
+}
+
+.btn.fn {
+  background: rgba(248, 113, 113, 0.35);
+  color: #fecaca;
+}
+
+.btn.fn:hover {
+  background: rgba(248, 113, 113, 0.5);
+}
+
+.btn.adv {
+  background: rgba(52, 211, 153, 0.35);
+  color: #a7f3d0;
+  font-size: 1.1rem;
+}
+
+.btn.adv:hover {
+  background: rgba(52, 211, 153, 0.5);
+}
+
+.hint {
+  margin-top: 14px;
+  font-size: 0.75rem;
+  color: #718096;
+  text-align: center;
+}

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>高级计算器</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="calculator">
+    <h1>高级计算器</h1>
+    <div class="display">
+      <div class="expression" id="expression"></div>
+      <div class="result" id="result">0</div>
+    </div>
+    <div class="keypad">
+      <div class="row">
+        <button class="btn fn" data-action="clear">C</button>
+        <button class="btn fn" data-action="backspace">⌫</button>
+        <button class="btn fn" data-action="percent">%</button>
+        <button class="btn op" data-op="/">÷</button>
+      </div>
+      <div class="row">
+        <button class="btn num" data-num="7">7</button>
+        <button class="btn num" data-num="8">8</button>
+        <button class="btn num" data-num="9">9</button>
+        <button class="btn op" data-op="*">×</button>
+      </div>
+      <div class="row">
+        <button class="btn num" data-num="4">4</button>
+        <button class="btn num" data-num="5">5</button>
+        <button class="btn num" data-num="6">6</button>
+        <button class="btn op" data-op="-">−</button>
+      </div>
+      <div class="row">
+        <button class="btn num" data-num="1">1</button>
+        <button class="btn num" data-num="2">2</button>
+        <button class="btn num" data-num="3">3</button>
+        <button class="btn op" data-op="+">+</button>
+      </div>
+      <div class="row">
+        <button class="btn num" data-num="0">0</button>
+        <button class="btn num" data-num=".">.</button>
+        <button class="btn adv" data-action="factorial">n!</button>
+        <button class="btn op" data-op="=">=</button>
+      </div>
+      <div class="row advanced">
+        <button class="btn adv" data-action="power">x^y</button>
+        <button class="btn adv" data-action="sqrt">√</button>
+        <button class="btn adv" data-action="square">x²</button>
+        <button class="btn adv" data-action="reciprocal">1/x</button>
+      </div>
+    </div>
+    <p class="hint">高级：n! 阶乘 | x^y 幂运算 | √ 开方 | x² 平方 | 1/x 倒数</p>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>
